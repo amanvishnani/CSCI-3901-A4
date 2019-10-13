@@ -10,10 +10,9 @@ public class Main {
         try {
             FileReader reader = new FileReader("Input.txt");
             System.out.println(puzzle.loadPuzzle(new BufferedReader(reader)));
-            PrintWriter pw = new PrintWriter(System.out); //new PrintWriter("Output.txt");
-            puzzle.print(pw);
-            new State(puzzle);
-            pw.close();
+//            PrintWriter pw = new PrintWriter(System.out); //new PrintWriter("Output.txt");
+//            puzzle.print(pw);
+//            pw.close();
         } catch (Exception ignored) {
             System.out.println(ignored);
         }

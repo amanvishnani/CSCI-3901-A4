@@ -5,7 +5,7 @@ import java.util.Map;
 public class State {
     private Character[][] data;
 
-    private String[] words;
+    private ArrayList<String> words;
 
     private Map<Integer, ArrayList<Slot>> map;
 
@@ -15,8 +15,8 @@ public class State {
             data[i] = new Character[state.data[i].length];
             System.arraycopy(state.data[i], 0, data[i], 0, data[i].length);
         }
-        words = new String[state.words.length];
-        System.arraycopy(state.words, 0, words, 0, state.words.length);
+        words = new ArrayList<>();
+        this.words.addAll(state.words);
         map = new HashMap<>();
         for (Map.Entry<Integer, ArrayList<Slot>> entry: state.map.entrySet()) {
             if(entry.getKey()==null) {
