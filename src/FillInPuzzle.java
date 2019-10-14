@@ -6,7 +6,7 @@ public class FillInPuzzle {
 
     private int guessCount = 0;
 
-    Stack<State> stack = new Stack<>();
+    private Stack<State> stack = new Stack<>();
 
     public Character[][] data;
 
@@ -46,7 +46,7 @@ public class FillInPuzzle {
                 Integer row = Integer.parseInt(inputs[1]);
                 Integer wordLen = Integer.parseInt(inputs[2]);
                 ArrayList<Slot> slotList = slotMap.computeIfAbsent(wordLen, k -> new ArrayList<>());
-                ArrayList<String> wordList = wordMap.computeIfAbsent(wordLen, k -> new ArrayList<>());
+                wordMap.computeIfAbsent(wordLen, k -> new ArrayList<>());
                 if(inputs[3].equals("h")) {
                     slotList.add(new Slot(row, column, 'h', wordLen));
                     for (int j = column; j < wordLen + column; j++) {
@@ -99,8 +99,8 @@ public class FillInPuzzle {
     }
 
     private void backtrack() {
-        State top = stack.pop();
-        top.restore(this);
+        State lastState = stack.pop();
+        this.restore(lastState);
         this.guessCount++;
         System.out.printf("************* BACKTRACK %d ****************\n", guessCount);
         debugPrint();
@@ -271,5 +271,29 @@ public class FillInPuzzle {
             }
             return true;
         }
+    }
+
+    public boolean restore(State state) {
+        FillInPuzzle puzzle = this;
+        try {
+            puzzle.data = new Character[state.data.length][];
+            for (int i = 0; i < state.data.length; i++) {
+                puzzle.data[i] = new Character[state.data[i].length];
+                System.arraycopy(state.data[i], 0, puzzle.data[i], 0, puzzle.data[i].length);
+            }
+            puzzle.words = new ArrayList<>();
+            puzzle.words.addAll(state.words);
+            puzzle.slotMap = new HashMap<>();
+            puzzle.wordMap = new HashMap<>();
+            for (Map.Entry<Integer, ArrayList<Slot>> entry: state.slotMap.entrySet()) {
+                puzzle.slotMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>(entry.getValue()));
+            }
+            for (Map.Entry<Integer, ArrayList<String>> entry: state.wordMap.entrySet()) {
+                puzzle.wordMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>(entry.getValue()));
+            }
+        } catch (Exception ignored) {
+            return false;
+        }
+        return true;
     }
 }

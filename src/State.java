@@ -3,11 +3,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class State {
-    private Character[][] data;
+    public Character[][] data;
 
-    private ArrayList<String> words;
+    public ArrayList<String> words;
 
-    private Map<Integer, ArrayList<Slot>> slotMap;
+    public Map<Integer, ArrayList<Slot>> slotMap;
 
     public Map<Integer, ArrayList<String>> wordMap;
 
@@ -28,28 +28,5 @@ public class State {
                 state.wordMap.entrySet()) {
             this.wordMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>(entry.getValue()));
         }
-    }
-
-    public boolean restore(FillInPuzzle puzzle) {
-        try {
-            puzzle.data = new Character[this.data.length][];
-            for (int i = 0; i < this.data.length; i++) {
-                puzzle.data[i] = new Character[this.data[i].length];
-                System.arraycopy(this.data[i], 0, puzzle.data[i], 0, puzzle.data[i].length);
-            }
-            puzzle.words = new ArrayList<>();
-            puzzle.words.addAll(this.words);
-            puzzle.slotMap = new HashMap<>();
-            puzzle.wordMap = new HashMap<>();
-            for (Map.Entry<Integer, ArrayList<Slot>> entry: this.slotMap.entrySet()) {
-                puzzle.slotMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>(entry.getValue()));
-            }
-            for (Map.Entry<Integer, ArrayList<String>> entry: this.wordMap.entrySet()) {
-                puzzle.wordMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>(entry.getValue()));
-            }
-        } catch (Exception ignored) {
-            return false;
-        }
-        return true;
     }
 }
