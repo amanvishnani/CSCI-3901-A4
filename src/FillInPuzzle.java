@@ -4,6 +4,8 @@ import java.util.*;
 
 public class FillInPuzzle {
 
+    private int guessCount = 0;
+
     Stack<State> stack = new Stack<>();
 
     public Character[][] data;
@@ -13,6 +15,7 @@ public class FillInPuzzle {
     public Map<Integer, ArrayList<Slot>> map;
 
     public Boolean loadPuzzle(BufferedReader stream) {
+        this.guessCount = 0;
         try {
             String line = stream.readLine();
             String[] inputs = line.split(" ");
@@ -36,23 +39,19 @@ public class FillInPuzzle {
                 if(!isInteger(0, 3, inputs)) {
                     return false;
                 }
-                Integer x = Integer.parseInt(inputs[0]);
-                Integer y = Integer.parseInt(inputs[1]);
-                Integer n = Integer.parseInt(inputs[2]);
-                ArrayList<Slot> list = map.get(n);
-                if(list == null) {
-                    list = new ArrayList<>();
-                    map.put(n, list);
-                }
+                Integer column = Integer.parseInt(inputs[0]);
+                Integer row = Integer.parseInt(inputs[1]);
+                Integer wordLen = Integer.parseInt(inputs[2]);
+                ArrayList<Slot> list = map.computeIfAbsent(wordLen, k -> new ArrayList<>());
                 if(inputs[3].equals("h")) {
-                    list.add(new Slot(x, y, 'h', n));
-                    for (int j = y; j < n+y; j++) {
-                        data[x][j] = '_';
+                    list.add(new Slot(row, column, 'h', wordLen));
+                    for (int j = column; j < wordLen + column; j++) {
+                        data[row][j] = '_';
                     }
                 } else if(inputs[3].equals("v")) {
-                    list.add(new Slot(x, y, 'v', n));
-                    for (int j = x; j < n+x; j++) {
-                        data[j][y] = '_';
+                    list.add(new Slot(row, column, 'v', wordLen));
+                    for (int j = row; j >= (row+1)-wordLen; j--) {
+                        data[j][column] = '_';
                     }
                 } else {
                     return false;
@@ -86,14 +85,21 @@ public class FillInPuzzle {
                     if(result) {
                         return true;
                     } else {
-                        // @TODO: Rollback
-                        // continue;
+                         backtrack();
                     }
                 }
             }
             return false; // No Words fit.
         }
         return this.words.isEmpty();
+    }
+
+    private void backtrack() {
+        State top = stack.pop();
+        top.restore(this);
+        this.guessCount++;
+        System.out.printf("************* BACKTRACK %d ****************\n", guessCount);
+        debugPrint();
     }
 
     private ArrayList<String> getRemainingWordsOf(int wordLength) {
@@ -117,7 +123,7 @@ public class FillInPuzzle {
             }
         } else {
             int j = -1;
-            for (int i = slot.row + slot.wordLength - 1; i >= slot.row; i--) {
+            for (int i = slot.row; i >= slot.row+1 - slot.wordLength; i--) {
                 j++;
                 data[i][slot.column] = word.charAt(j);
             }
@@ -177,7 +183,7 @@ public class FillInPuzzle {
                 }
             }
         } else {
-            for (int i = slot.row; i < slot.row + slot.wordLength; i++) {
+            for (int i = slot.row; i >= (slot.row+1)-slot.wordLength; i--) {
                 int row = i, column = slot.column;
                 if(!data[row][column].equals('_')) {
                     numOfFilledChars++;
@@ -200,7 +206,7 @@ public class FillInPuzzle {
     private String getPrintableString() {
         StringBuilder builder = new StringBuilder();
         for (int i=data.length-1; i>=0; i--) { // Y-Axis
-            builder.append(i).append(" ").append((i < 10) ? " " : "");
+            builder.append(i).append(" |").append((i < 10) ? " " : "");
             for (int j=0; j<data[i].length; j++) { // X-Axis
                 if(data[i][j] != null) {
                     builder.append(" ").append(data[i][j]).append(" ");
@@ -212,6 +218,11 @@ public class FillInPuzzle {
             if(i==0) {
                 builder.append("   ");
                 for (int j = 0; j < data[i].length; j++) {
+                    builder.append("---");
+                }
+                builder.append("\n");
+                builder.append("   ");
+                for (int j = 0; j < data[i].length; j++) {
                     builder.append(" ").append(j).append(" ");
                 }
                 builder.append("\n");
@@ -221,7 +232,7 @@ public class FillInPuzzle {
     }
 
     public int choices() {
-        return 0;
+        return this.guessCount;
     }
 
     public FillInPuzzle() {
@@ -258,7 +269,7 @@ public class FillInPuzzle {
             return true;
         } else {
             int j = -1;
-            for (int i = slot.row + slot.wordLength - 1; i >= slot.row; i--) {
+            for (int i = slot.row; i >= slot.row+1 - slot.wordLength; i--) {
                 j++;
                 Character c = data[i][slot.column];
                 if (c.equals('_') || c.equals(str.charAt(j))) {

@@ -31,4 +31,32 @@ public class State {
             }
         }
     }
+
+    public boolean restore(FillInPuzzle puzzle) {
+        try {
+            puzzle.data = new Character[this.data.length][];
+            for (int i = 0; i < this.data.length; i++) {
+                puzzle.data[i] = new Character[this.data[i].length];
+                System.arraycopy(this.data[i], 0, puzzle.data[i], 0, puzzle.data[i].length);
+            }
+            puzzle.words = new ArrayList<>();
+            puzzle.words.addAll(this.words);
+            puzzle.map = new HashMap<>();
+            for (Map.Entry<Integer, ArrayList<Slot>> entry: this.map.entrySet()) {
+                if(entry.getKey()==null) {
+                    continue;
+                }
+                if(!puzzle.map.containsKey(entry.getKey())) {
+                    puzzle.map.put(entry.getKey(), new ArrayList<>());
+                }
+                for (Slot s :
+                        entry.getValue()) {
+                    puzzle.map.get(entry.getKey()).add(s);
+                }
+            }
+        } catch (Exception ignored) {
+            return false;
+        }
+        return true;
+    }
 }
