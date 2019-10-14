@@ -120,6 +120,7 @@ public class FillInPuzzle {
                 data[i][slot.column] = word.charAt(j);
             }
         }
+        this.slotMap.get(slot.wordLength).remove(slot);
     }
 
     private void saveState() {

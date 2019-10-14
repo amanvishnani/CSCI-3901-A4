@@ -1,9 +1,13 @@
-8 8 4
+8 8 6
 0 3 4 h
 1 4 4 v
 2 3 4 v
 2 0 4 h
+0 2 4 h
+7 4 4 v
 deep
 band
 ball
 baby
+glad
+poll
