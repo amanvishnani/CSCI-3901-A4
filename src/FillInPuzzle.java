@@ -12,7 +12,9 @@ public class FillInPuzzle {
 
     public ArrayList<String> words;
 
-    public Map<Integer, ArrayList<Slot>> map;
+    public Map<Integer, ArrayList<Slot>> slotMap;
+
+    public Map<Integer, ArrayList<String>> wordMap;
 
     public Boolean loadPuzzle(BufferedReader stream) {
         this.guessCount = 0;
@@ -27,7 +29,8 @@ public class FillInPuzzle {
             }
             data = new Character[Integer.parseInt(inputs[0])][Integer.parseInt(inputs[1])];
             words = new ArrayList<>();
-            map = new HashMap<>();
+            slotMap = new HashMap<>();
+            wordMap = new HashMap<>();
 
             int numberOfWords = Integer.parseInt(inputs[2]);
             for (int i = 0; i < numberOfWords; i++) {
@@ -42,14 +45,15 @@ public class FillInPuzzle {
                 Integer column = Integer.parseInt(inputs[0]);
                 Integer row = Integer.parseInt(inputs[1]);
                 Integer wordLen = Integer.parseInt(inputs[2]);
-                ArrayList<Slot> list = map.computeIfAbsent(wordLen, k -> new ArrayList<>());
+                ArrayList<Slot> slotList = slotMap.computeIfAbsent(wordLen, k -> new ArrayList<>());
+                ArrayList<String> wordList = wordMap.computeIfAbsent(wordLen, k -> new ArrayList<>());
                 if(inputs[3].equals("h")) {
-                    list.add(new Slot(row, column, 'h', wordLen));
+                    slotList.add(new Slot(row, column, 'h', wordLen));
                     for (int j = column; j < wordLen + column; j++) {
                         data[row][j] = '_';
                     }
                 } else if(inputs[3].equals("v")) {
-                    list.add(new Slot(row, column, 'v', wordLen));
+                    slotList.add(new Slot(row, column, 'v', wordLen));
                     for (int j = row; j >= (row+1)-wordLen; j--) {
                         data[j][column] = '_';
                     }
@@ -60,6 +64,7 @@ public class FillInPuzzle {
             for (int i=0; i<numberOfWords; i++) {
                 String word = stream.readLine().toLowerCase();
                 words.add(word);
+                wordMap.get(word.length()).add(word);
             }
         } catch (Exception ignored) {
             return false;
@@ -68,30 +73,29 @@ public class FillInPuzzle {
     }
     public Boolean solve() {
         debugPrint();
-        ArrayList<String> unvisitedWords = new ArrayList<>(this.words);
-        while(!unvisitedWords.isEmpty()) {
-            Slot slot = findBestSlot();
-            ArrayList<String> options = getRemainingWordsOf(slot.wordLength);
-            if(options.isEmpty()) {
-                return false;
-            }
-            for (String word : options) {
-                if(canFit(slot, word)) {
-                    saveState();
-                    fitWord(slot, word);
-                    unvisitedWords.remove(word);
-                    this.words.remove(word);
-                    Boolean result = solve();
-                    if(result) {
-                        return true;
-                    } else {
-                         backtrack();
-                    }
+        Slot slot = findBestSlot();
+        if(this.words.isEmpty() || slot==null){
+            return true;
+        }
+        ArrayList<String> options = new ArrayList<>(wordMap.get(slot.wordLength));
+        if(options.isEmpty()) {
+            return false;
+        }
+        for (String word : options) {
+            if(canFit(slot, word)) {
+                saveState();
+                fitWord(slot, word);
+                this.words.remove(word);
+                this.wordMap.get(word.length()).remove(word);
+                Boolean result = solve();
+                if(result) {
+                    return true;
+                } else {
+                     backtrack();
                 }
             }
-            return false; // No Words fit.
         }
-        return this.words.isEmpty();
+        return false; // No Words fit.
     }
 
     private void backtrack() {
@@ -100,18 +104,6 @@ public class FillInPuzzle {
         this.guessCount++;
         System.out.printf("************* BACKTRACK %d ****************\n", guessCount);
         debugPrint();
-    }
-
-    private ArrayList<String> getRemainingWordsOf(int wordLength) {
-        ArrayList<String> unvisitedWords = new ArrayList<>(this.words);
-        ArrayList<String> wordsWithSlotLen = new ArrayList<>();
-        for (String word :
-                unvisitedWords) {
-            if(word.length() == wordLength) {
-                wordsWithSlotLen.add(word);
-            }
-        }
-        return wordsWithSlotLen;
     }
 
     private void fitWord(Slot slot, String word) {
@@ -138,7 +130,7 @@ public class FillInPuzzle {
         /* Strategy 1: Slot which has max chars filled. */
         int maxFilledChars = 0;
         Slot foundSlot = null;
-        for (Map.Entry<Integer, ArrayList<Slot>> entry: this.map.entrySet()) {
+        for (Map.Entry<Integer, ArrayList<Slot>> entry: this.slotMap.entrySet()) {
             ArrayList<Slot> list = entry.getValue();
             for (Slot slot: list) {
                 int num = getNumOfFilledChars(slot);
@@ -158,7 +150,7 @@ public class FillInPuzzle {
         /* Strategy 2: Pick first slot having least options. */
         int minSlot = 9999;
         int slotKey = -1;
-        for (Map.Entry<Integer, ArrayList<Slot>> entry: this.map.entrySet()) {
+        for (Map.Entry<Integer, ArrayList<Slot>> entry: this.slotMap.entrySet()) {
             ArrayList<Slot> list = entry.getValue();
             if (list.isEmpty()) {
                 continue;
@@ -169,7 +161,7 @@ public class FillInPuzzle {
             }
         }
         if (slotKey != -1) {
-            return this.map.get(slotKey).get(0);
+            return this.slotMap.get(slotKey).get(0);
         }
         return null;
     }

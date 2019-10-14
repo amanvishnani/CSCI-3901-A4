@@ -7,28 +7,26 @@ public class State {
 
     private ArrayList<String> words;
 
-    private Map<Integer, ArrayList<Slot>> map;
+    private Map<Integer, ArrayList<Slot>> slotMap;
+
+    public Map<Integer, ArrayList<String>> wordMap;
 
     public State(FillInPuzzle state) {
         this.data = new Character[state.data.length][];
-        for (int i = 0; i < data.length; i++) {
+        for (int i = 0; i < this.data.length; i++) {
             data[i] = new Character[state.data[i].length];
             System.arraycopy(state.data[i], 0, data[i], 0, data[i].length);
         }
-        words = new ArrayList<>();
+        this.words = new ArrayList<>();
         this.words.addAll(state.words);
-        map = new HashMap<>();
-        for (Map.Entry<Integer, ArrayList<Slot>> entry: state.map.entrySet()) {
-            if(entry.getKey()==null) {
-                continue;
-            }
-            if(!map.containsKey(entry.getKey())) {
-                map.put(entry.getKey(), new ArrayList<>());
-            }
-            for (Slot s :
-                    entry.getValue()) {
-                map.get(entry.getKey()).add(s);
-            }
+        this.slotMap = new HashMap<>();
+        for (Map.Entry<Integer, ArrayList<Slot>> entry: state.slotMap.entrySet()) {
+            this.slotMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>(entry.getValue()));
+        }
+        this.wordMap = new HashMap<>();
+        for (Map.Entry<Integer, ArrayList<String>> entry :
+                state.wordMap.entrySet()) {
+            this.wordMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>(entry.getValue()));
         }
     }
 
@@ -41,18 +39,13 @@ public class State {
             }
             puzzle.words = new ArrayList<>();
             puzzle.words.addAll(this.words);
-            puzzle.map = new HashMap<>();
-            for (Map.Entry<Integer, ArrayList<Slot>> entry: this.map.entrySet()) {
-                if(entry.getKey()==null) {
-                    continue;
-                }
-                if(!puzzle.map.containsKey(entry.getKey())) {
-                    puzzle.map.put(entry.getKey(), new ArrayList<>());
-                }
-                for (Slot s :
-                        entry.getValue()) {
-                    puzzle.map.get(entry.getKey()).add(s);
-                }
+            puzzle.slotMap = new HashMap<>();
+            puzzle.wordMap = new HashMap<>();
+            for (Map.Entry<Integer, ArrayList<Slot>> entry: this.slotMap.entrySet()) {
+                puzzle.slotMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>(entry.getValue()));
+            }
+            for (Map.Entry<Integer, ArrayList<String>> entry: this.wordMap.entrySet()) {
+                puzzle.wordMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>(entry.getValue()));
             }
         } catch (Exception ignored) {
             return false;

@@ -1,11 +1,9 @@
-10 10 5
+10 10 4
 0 0 5 h
 1 2 5 h
 1 4 5 v
 4 3 4 v
-0 1 4 h
 bash
 array
 frail
 plush
-sikh
