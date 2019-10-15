@@ -6,8 +6,6 @@ public class FillInPuzzle {
 
     private int guessCount = 0;
 
-    private Stack<State> stack = new Stack<>();
-
     public Character[][] data;
 
     public ArrayList<String> words;
@@ -81,9 +79,9 @@ public class FillInPuzzle {
         if(options.isEmpty()) {
             return false;
         }
+        State lastState = new State(this);
         for (String word : options) {
             if(canFit(slot, word)) {
-                saveState();
                 fitWord(slot, word);
                 this.words.remove(word);
                 this.wordMap.get(word.length()).remove(word);
@@ -91,15 +89,14 @@ public class FillInPuzzle {
                 if(result) {
                     return true;
                 } else {
-                     backtrack();
+                     backtrack(lastState);
                 }
             }
         }
         return false; // No Words fit.
     }
 
-    private void backtrack() {
-        State lastState = stack.pop();
+    private void backtrack(State lastState) {
         this.restore(lastState);
         this.guessCount++;
         System.out.printf("************* BACKTRACK %d ****************\n", guessCount);
@@ -121,10 +118,6 @@ public class FillInPuzzle {
             }
         }
         this.slotMap.get(slot.wordLength).remove(slot);
-    }
-
-    private void saveState() {
-        stack.push(new State(this));
     }
 
     public Slot findBestSlot() {
