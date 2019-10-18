@@ -2,49 +2,81 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.util.*;
 
+/**
+ * @author Aman Vishnani (aman.vishnani@dal.ca) [CSID: vishnani]
+ * FillInPuzzle Class
+ */
 public class FillInPuzzle {
 
+    /**
+     * Maintains number of Backtracks
+     */
     private int guessCount = 0;
 
+    /**
+     * Character grid/matrix represents the structure of puzzle
+     */
     public Character[][] data;
 
+    /**
+     * Maintains a list of all the words.
+     */
     public ArrayList<String> words;
 
+    /**
+     * Map representing word length -> list of slot with same length.
+     */
     public Map<Integer, ArrayList<Slot>> slotMap;
 
+    /**
+     * Map representing word length -> list of words with same length.
+     */
     public Map<Integer, ArrayList<String>> wordMap;
 
+    /**
+     * Reads input including grid size, number of words, all slots and all words from the input.
+     * @param stream the input stream
+     * @return true on success
+     */
     public Boolean loadPuzzle(BufferedReader stream) {
         this.guessCount = 0;
         try {
             String line = stream.readLine();
             String[] inputs = line.split(" ");
+            //return false if input does not have three spaces
             if(inputs.length != 3) {
                 return false;
             }
+            // return false if inputs are not integers
             if(!isInteger(inputs)) {
                 return false;
             }
+            // Initialize all variables - object might get reused.
             data = new Character[Integer.parseInt(inputs[0])][Integer.parseInt(inputs[1])];
             words = new ArrayList<>();
             slotMap = new HashMap<>();
             wordMap = new HashMap<>();
 
+            // Read all slots.
             int numberOfWords = Integer.parseInt(inputs[2]);
             for (int i = 0; i < numberOfWords; i++) {
                 line = stream.readLine().toLowerCase();
                 inputs = line.split(" ");
+                // return if it does not have 4 inputs: row, column, word length and direction
                 if(inputs.length != 4) {
                     return false;
                 }
+                // return false if row, column, and word length are not integers.
                 if(!isInteger(0, 3, inputs)) {
                     return false;
                 }
                 Integer column = Integer.parseInt(inputs[0]);
                 Integer row = Integer.parseInt(inputs[1]);
                 Integer wordLen = Integer.parseInt(inputs[2]);
+                // Initialize slotList and wordLis if absent in Map
                 ArrayList<Slot> slotList = slotMap.computeIfAbsent(wordLen, k -> new ArrayList<>());
                 wordMap.computeIfAbsent(wordLen, k -> new ArrayList<>());
+                // Create a slot object, track it and assign blank fields to all the characters in slot.
                 if(inputs[3].equals("h")) {
                     slotList.add(new Slot(row, column, 'h', wordLen));
                     for (int j = column; j < wordLen + column; j++) {
@@ -56,9 +88,11 @@ public class FillInPuzzle {
                         data[j][column] = '_';
                     }
                 } else {
+                    // if direction is neither if v or h return.
                     return false;
                 }
             }
+            // Read all words.
             for (int i=0; i<numberOfWords; i++) {
                 String word = stream.readLine().toLowerCase();
                 words.add(word);
@@ -69,27 +103,42 @@ public class FillInPuzzle {
         }
         return true;
     }
+
+    /**
+     * Solves the problem recursively.
+     * @return true on success.
+     */
     public Boolean solve() {
         debugPrint();
+        // Find the best slot to start with
         Slot slot = findBestSlot();
+        // If slot not found or all words have been visited, problem is solved already.
         if(this.words.isEmpty() || slot==null){
             return true;
         }
+        // Find all words of slot length that have not been visited yet.
         ArrayList<String> options = new ArrayList<>(wordMap.get(slot.wordLength));
+        // return false if zero options were return
         if(options.isEmpty()) {
             return false;
         }
+        // Clone the current state of puzzle
         State lastState = new State(this);
         for (String word : options) {
             if(canFit(slot, word)) {
+                // If the word fits in the slot, write that word to the slot.
                 fitWord(slot, word);
+                // Mutate the state to stop tacking word.
                 this.words.remove(word);
                 this.wordMap.get(word.length()).remove(word);
+                // Solve sub problem recursively.
                 Boolean result = solve();
+                // return true if sub problem was solved successfully.
                 if(result) {
                     return true;
                 } else {
-                     backtrack(lastState);
+                    // backtrack if it faild
+                    backtrack(lastState);
                 }
             }
         }
@@ -120,7 +169,11 @@ public class FillInPuzzle {
         this.slotMap.get(slot.wordLength).remove(slot);
     }
 
-    public Slot findBestSlot() {
+    /**
+     * Follows two strategies to return the best slot to work with.
+     * @return best Slot
+     */
+    private Slot findBestSlot() {
         /* Strategy 1: Slot which has max chars filled. */
         int maxFilledChars = 0;
         Slot foundSlot = null;
@@ -142,7 +195,7 @@ public class FillInPuzzle {
         }
 
         /* Strategy 2: Pick first slot having least options. */
-        int minSlot = 9999;
+        int minSlot = Integer.MAX_VALUE;
         int slotKey = -1;
         for (Map.Entry<Integer, ArrayList<Slot>> entry: this.slotMap.entrySet()) {
             ArrayList<Slot> list = entry.getValue();
@@ -160,6 +213,11 @@ public class FillInPuzzle {
         return null;
     }
 
+    /**
+     * Calculates number of characters filled in the slots.
+     * @param slot the slot
+     * @return the number of fill chars.
+     */
     private Integer getNumOfFilledChars(Slot slot) {
         Integer numOfFilledChars = 0;
         if (slot.direction.equals('h')) {
