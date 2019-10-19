@@ -39,6 +39,9 @@ public class FillInPuzzle {
      * @return true on success
      */
     public Boolean loadPuzzle(BufferedReader stream) {
+        if(stream == null) {
+            return false;
+        }
         this.guessCount = 0;
         try {
             String line = stream.readLine();
@@ -174,7 +177,7 @@ public class FillInPuzzle {
      * @return best Slot
      */
     private Slot findBestSlot() {
-        /* Strategy 1: Slot which has max chars filled. */
+            /* Strategy 1: Slot which has max chars filled. */
         int maxFilledChars = 0;
         Slot foundSlot = null;
         for (Map.Entry<Integer, ArrayList<Slot>> entry: this.slotMap.entrySet()) {
@@ -325,7 +328,7 @@ public class FillInPuzzle {
         }
     }
 
-    public boolean restore(State state) {
+    private boolean restore(State state) {
         FillInPuzzle puzzle = this;
         try {
             puzzle.data = new Character[state.data.length][];
