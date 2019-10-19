@@ -265,7 +265,7 @@ public class FillInPuzzle {
                     builder.append("---");
                 }
                 builder.append("\n");
-                builder.append("   ");
+                builder.append("    ");
                 for (int j = 0; j < data[i].length; j++) {
                     builder.append(" ").append(j).append(" ");
                 }

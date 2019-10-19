@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) {
         FillInPuzzle puzzle = new FillInPuzzle();
         try {
-            FileReader reader = new FileReader("Input2.txt");
+            FileReader reader = new FileReader("Input.txt");
             System.out.println(puzzle.loadPuzzle(new BufferedReader(reader)));
             PrintWriter pw = new PrintWriter("Output.txt");
             puzzle.solve();
